@@ -55,7 +55,7 @@ async def archiving(request):
                 logging.warning('Download was interrupted')
                 break
     except SystemExit:
-        await proc.send_signal(signal.SIGKILL)
+        proc.send_signal(signal.SIGKILL)
         await proc.communicate()
     return response
 
