@@ -56,7 +56,7 @@ async def archiving(request):
             except asyncio.CancelledError:
                 proc.send_signal(signal.SIGKILL)
                 logging.warning('Download was interrupted')
-                break
+                raise 
     except SystemExit:
         proc.send_signal(signal.SIGKILL)
         await proc.communicate()
