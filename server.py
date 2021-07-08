@@ -1,6 +1,5 @@
 import os
 import logging
-from datetime import datetime
 import signal
 import argparse
 
@@ -61,19 +60,6 @@ async def archiving(request):
     return response
 
 
-async def uptime_handler(request):
-    response = web.StreamResponse()
-    response.headers['Content-Type'] = 'text/html'
-
-    await response.prepare(request)
-
-    while True:
-        message_text = datetime.now().strftime('%d-%m-%Y %H:%M:%S<br>')
-        await response.write(message_text.encode('UTF-8'))
-
-        await asyncio.sleep(float(os.getenv('delay')))
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Проект микросервиса для загрузки фотографий')
@@ -91,7 +77,5 @@ if __name__ == '__main__':
     app = web.Application()
     app.add_routes([
         web.get('/', handle_index_page),
-        web.get('/archive/{hash_value}/', archiving),
-        web.get('/uptime', uptime_handler)
-    ])
+        web.get('/archive/{hash_value}/', archiving)])
     web.run_app(app)
