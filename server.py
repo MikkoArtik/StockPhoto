@@ -21,7 +21,7 @@ async def handle_404_page(request):
 
 
 async def archiving(request):
-    target_folder = os.path.join(os.getenv('root_folder'),
+    target_folder = os.path.join(app['root_folder'],
                                  request.match_info['hash_value'])
     if not os.path.exists(target_folder):
         return await handle_404_page(request)
@@ -49,14 +49,14 @@ async def archiving(request):
             try:
                 await response.write(data)
                 logging.info('Sending archive chunk ...')
-                await asyncio.sleep(float(os.getenv('delay')))
+                await asyncio.sleep(app['delay'])
             except asyncio.CancelledError:
                 proc.send_signal(signal.SIGKILL)
                 logging.warning('Download was interrupted')
                 break
     except SystemExit:
-        proc.send_signal(signal.SIGKILL)
-        _ = proc.communicate()
+        await proc.send_signal(signal.SIGKILL)
+        await proc.communicate()
     return response
 
 
@@ -64,17 +64,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Проект микросервиса для загрузки фотографий')
     parser.add_argument('root_folder', help='Корневая папка с фотографиями')
-    parser.add_argument('delay', help='Задержка сервера')
+    parser.add_argument('delay', type=float, help='Задержка сервера')
     parser.add_argument('--log', help='Включение журнала логирования')
 
     args = parser.parse_args()
     if args.log == 'ON':
         logging.basicConfig(level=logging.DEBUG)
 
-    os.environ['root_folder'] = args.root_folder
-    os.environ['delay'] = args.delay
-
     app = web.Application()
+    app['root_folder'] = args.root_folder
+    app['delay'] = args.delay
+
     app.add_routes([
         web.get('/', handle_index_page),
         web.get('/archive/{hash_value}/', archiving)])
