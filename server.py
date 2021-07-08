@@ -8,6 +8,9 @@ from aiohttp import web
 import aiofiles
 
 
+PART_SIZE_IN_BYTES = 5120
+
+
 async def handle_index_page(request):
     async with aiofiles.open('index.html', mode='r') as index_file:
         index_contents = await index_file.read()
@@ -42,12 +45,12 @@ async def archiving(request):
 
     try:
         while True:
-            data = await proc.stdout.read(1024 * 5)
-            if not data:
+            archive_part = await proc.stdout.read(PART_SIZE_IN_BYTES)
+            if not archive_part:
                 break
 
             try:
-                await response.write(data)
+                await response.write(archive_part)
                 logging.info('Sending archive chunk ...')
                 await asyncio.sleep(app['delay'])
             except asyncio.CancelledError:
