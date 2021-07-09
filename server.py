@@ -36,10 +36,10 @@ async def archiving(request):
 
     await response.prepare(request)
 
-    command = ['zip', '-r', '-j', '-', target_folder]
+    command = ['zip', '-r', '-', request.match_info['hash_value']]
     proc = await asyncio.subprocess.create_subprocess_exec(
         *command, stdin=asyncio.subprocess.PIPE,
-        stdout=asyncio.subprocess.PIPE)
+        stdout=asyncio.subprocess.PIPE, cwd=app['root_folder'])
 
     logging.info('Start sending...')
 
